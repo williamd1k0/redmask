@@ -1,4 +1,4 @@
-# redmask
+# ![icon](redmask.48.png) redmask
 Tool to create palette mask
 
 
