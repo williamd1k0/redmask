@@ -26,15 +26,20 @@ import os
 from random import randrange
 from argparse import ArgumentParser
 from PIL import Image
+from gpl import load_file as load_gpl
 
 
 def load_image(path):
     return Image.open(path).convert('RGBA')
 
 def load_palette(path):
-    img = load_image(path)
-    pixels = img.load()
-    return [pixels[x, 0] for x in range(img.size[0])]
+    if path.endswith('.gpl'):
+        gpl = load_gpl(path)
+        return tuple(color + (255,) for color in gpl['colors'])
+    else:
+        img = load_image(path)
+        pixels = img.load()
+        return tuple(pixels[x, 0] for x in range(img.size[0]))
 
 
 def process_pixel(red, normalized=False, random=''):
@@ -103,7 +108,7 @@ def main(args):
 if __name__ == '__main__':
     arg_parse = ArgumentParser('redmask')
     arg_parse.add_argument('input', type=str, metavar='<source.png>', help='input image')
-    arg_parse.add_argument('palette', type=str, metavar='<pal.png>', help='palette image')
+    arg_parse.add_argument('palette', type=str, metavar='<pal.png|gpl>', help='palette image')
     arg_parse.add_argument('-o', '--output', type=str, metavar='<output.png>', help='output image')
     arg_parse.add_argument('-s', '--step', type=int, metavar='<color-step=1>', default=1, help='mask color step')
     arg_parse.add_argument('-r', '--random', type=str, metavar='<random=g|b|gb>', default='', help='use random values for green and/or blue')
