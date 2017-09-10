@@ -56,6 +56,7 @@ def process_pixel(red, normalized=False, random=''):
 def generate_mask(img, pal, step, normalized=False, random=''):
     mask = img.copy()
     pixels = mask.load()
+    wrong_colors = []
     for y in range(img.size[1]):
         for x in range(img.size[0]):
             if pixels[x, y] in pal:
@@ -64,17 +65,32 @@ def generate_mask(img, pal, step, normalized=False, random=''):
                     normalized, random
                 )
             elif pixels[x, y][3] == 0:
-                print('INFO: Ignoring transparent pixel')
-            else:
+                for i, color in enumerate(pal):
+                    if color[3] == 0:
+                        pixels[x, y] = process_pixel(
+                            i*step,
+                            normalized, random
+                        )
+                        break
+                else:
+                    print('INFO: Ignoring transparent pixel')
+            elif not pixels[x, y] in wrong_colors:
+                wrong_colors.append(pixels[x, y])
                 print('WARN: Wrong color/palette ', pixels[x, y])
     return mask
 
 def apply_palette(mask, pal, step):
     img = mask.copy()
     pixels = img.load()
+    wrong_colors = []
     for y in range(img.size[1]):
         for x in range(img.size[0]):
-            pixels[x, y] = pal[pixels[x, y][0]//step]
+            try:
+                pixels[x, y] = pal[pixels[x, y][0]//step]
+            except IndexError:
+                if not pixels[x, y] in wrong_colors:
+                    wrong_colors.append(pixels[x, y])
+                    print('WARN: Wrong color/palette ', pixels[x, y])
     return img
 
 def parse_output(input_, output_=None, term='0'):
