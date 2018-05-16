@@ -1,7 +1,7 @@
 """
 MIT License
 
-Copyright (c) 2017 William Tumeo
+Copyright (c) 2018 William Tumeo
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -43,10 +43,10 @@ def is_comment(line):
 
 def get_color(line):
     line = line.replace('\t', ' ')
-    color_name = line.split(' ')
-    if len(color_name) == 4:
+    color_name = [c for c in line.split(' ') if c != ""]
+    if len(color_name) >= 4:
         color = tuple(int(value) for value in color_name[:3])
-        return color, color_name[3]
+        return color, ' '.join(color_name[3:])
     return None
 
 def load_lines(lines):

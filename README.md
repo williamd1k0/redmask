@@ -1,10 +1,10 @@
 # ![icon](redmask.48.png) redmask
-Tool to create palette mask
+A simple tool to create palette swap mask
 
 
-## How a palette mask works
+## How palette swap mask works
 
-A palette mask is an image used to map a palette using a gradient scale.
+A palette swap mask is an image used to map a palette using a gradient scale.
 
 The tool will generate a red gradient image because green and blue values are useless for the mask.
 
