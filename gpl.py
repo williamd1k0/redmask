@@ -33,10 +33,10 @@ def check_header(line):
 
 def check_params(line):
     if line.startswith(PARAM_NAME):
-        return {'name': line[len(PARAM_NAME):].strip()}
+        return {'name': line.split(':')[1].strip()}
     elif line.startswith(PARAM_COLUMNS):
-        return {'columns': line[len(PARAM_COLUMNS):].strip()}
-    raise Exception('Wrong param')
+        return {'columns': line.split(':')[1].strip()}
+    return None
 
 def is_comment(line):
     return line.startswith(COMMENT)
@@ -50,29 +50,35 @@ def get_color(line):
     return None
 
 def load_lines(lines):
-    params = {
-        'header': HEADER,
+    data = {
+        'name': '',
+        'columns': 4,
         'comments': [],
         'colors': [],
         'names': []
     }
-    params_count = 0
+    params_check = False
     for n, line in enumerate(lines):
         line = line.strip()
         if n == 0:
-            if not check_header:
+            if not check_header(line):
                 raise Exception("Header won't match.")
-        elif params_count < PARAMS_COUNT:
-            params_count += 1
-            params.update(check_params(line))
-        elif is_comment(line):
-            params['comments'].append(line)
-        else:
-            color = get_color(line)
-            if color is not None:
-                params['colors'].append(color[0])
-                params['names'].append(color[1])
-    return params
+            continue
+        if is_comment(line):
+            data['comments'].append(line['#' in line:].strip())
+            continue
+        elif not params_check:
+            p = check_params(line)
+            if not p is None:
+                data.update(p)
+                continue
+            else:
+                params_check = True
+        color = get_color(line)
+        if not color is None:
+            data['colors'].append(color[0])
+            data['names'].append(color[1])
+    return data
 
 def load_file(path):
     with open(path, 'r') as gpl:
@@ -83,4 +89,7 @@ def load_file(path):
 if __name__ == '__main__':
     import sys
     pal = load_file(sys.argv[-1])
-    print(pal)
+    print('Name:', pal['name'])
+    print('Columns:', pal['columns'])
+    for name, color in zip(pal['names'], pal['colors']):
+        print(name, *color)
