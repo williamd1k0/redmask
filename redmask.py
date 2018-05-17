@@ -93,6 +93,21 @@ def apply_palette(mask, pal, step):
                     print('WARN: Wrong color/palette ', pixels[x, y])
     return img
 
+def generate_palette(img, transparent=False):
+    pal = []
+    pixels = img.load()
+    for y in range(img.size[1]):
+        for x in range(img.size[0]):
+            if not pixels[x, y] in pal:
+                if transparent or pixels[x, y][3] == 255:
+                    pal.append(pixels[x, y])
+    print('%s colors' % len(pal))
+    pal_img = Image.new('RGBA', (len(pal), 1))
+    pixels = pal_img.load()
+    for x in range(pal_img.size[0]):
+        pixels[x, 0] = pal[x]
+    return pal_img
+
 def parse_output(input_, output_=None, term='0'):
     if output_ is None:
         base = os.path.basename(input_)
@@ -103,7 +118,18 @@ def parse_output(input_, output_=None, term='0'):
     return output_
 
 def main(args):
-    if not args.apply:
+    if args.apply:
+        print('Applying palette...')
+        mask = load_image(args.input)
+        pal = load_palette(args.palette)
+        img = apply_palette(mask, pal, abs(args.step))
+        img.save(parse_output(args.input, args.output, 'new'))
+    elif args.generate:
+        print('Generating palette...')
+        img = load_image(args.input)
+        pal = generate_palette(img, args.transparent)
+        pal.save(parse_output(args.palette+'.png', args.output, 'pal'))
+    else:
         print('Generating mask...')
         img = load_image(args.input)
         pal = load_palette(args.palette)
@@ -112,12 +138,6 @@ def main(args):
             args.normalized, args.random
         )
         mask.save(parse_output(args.input, args.output, 'mask'))
-    else:
-        print('Applying palette...')
-        mask = load_image(args.input)
-        pal = load_palette(args.palette)
-        img = apply_palette(mask, pal, abs(args.step))
-        img.save(parse_output(args.input, args.output, 'new'))
     print('Done')
 
 
@@ -130,6 +150,8 @@ if __name__ == '__main__':
     arg_parse.add_argument('-r', '--random', type=str, metavar='<random=g|b|gb>', default='', help='use random values for green and/or blue')
     arg_parse.add_argument('-n', '--normalized', action='store_true', default=False, help='set same value for red, green and blue')
     arg_parse.add_argument('-a', '--apply', action='store_true', default=False, help='apply palette to a mask')
+    arg_parse.add_argument('-g', '--generate', action='store_true', default=False, help='generate palette input')
+    arg_parse.add_argument('-t', '--transparent', action='store_true', default=False, help='take transparent colors into account')
     args = arg_parse.parse_args()
 
     main(args)
