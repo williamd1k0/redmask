@@ -48,3 +48,7 @@ redmask <generated-mask> <palette> -a
 You can test using images in the `tests` directory.
 
 Also, you can view usage info using the `-h/--help` command.
+
+---
+
+> Example art made by [Yomieda](https://twitter.com/yomieda).
