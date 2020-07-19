@@ -1,4 +1,4 @@
-# ![icon](redmask.48.png) redmask
+# ![icon](https://raw.githubusercontent.com/williamd1k0/redmask/master/icon.png) redmask
 A simple tool to create palette swap mask
 
 
@@ -10,7 +10,7 @@ The tool will generate a red gradient image because green and blue values are us
 
 Full explanation about palette mask: [https://www.youtube.com/watch?v=u4Iz5AJa31Q](https://www.youtube.com/watch?v=u4Iz5AJa31Q)
 
-![palette-mask-tuto](tests/palette-mask.png)
+![palette-mask-tuto](https://raw.githubusercontent.com/williamd1k0/redmask/master/tests/palette-mask.png)
 
 ## Using the generated mask
 

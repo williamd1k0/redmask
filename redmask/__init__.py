@@ -1,0 +1,1 @@
+from .redmask import dist_main
