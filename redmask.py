@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 """
 MIT License
 
@@ -28,6 +29,7 @@ from argparse import ArgumentParser
 from PIL import Image
 from gpl import load_file as load_gpl
 
+VERBOSE = False
 
 def load_image(path):
     return Image.open(path).convert('RGBA')
@@ -73,24 +75,27 @@ def generate_mask(img, pal, step, normalized=False, random=''):
                         )
                         break
                 else:
-                    print('INFO: Ignoring transparent pixel')
+                    if VERBOSE: print('INFO: Ignoring transparent pixel')
             elif not pixels[x, y] in wrong_colors:
                 wrong_colors.append(pixels[x, y])
-                print('WARN: Wrong color/palette ', pixels[x, y])
+                if VERBOSE: print('WARN: Wrong color/palette ', pixels[x, y])
     return mask
 
-def apply_palette(mask, pal, step):
+def apply_palette(mask, pal, step, transparent=False):
     img = mask.copy()
     pixels = img.load()
     wrong_colors = []
     for y in range(img.size[1]):
         for x in range(img.size[0]):
+            if not transparent and pixels[x, y][-1] != 255:
+                if VERBOSE: print('INFO: Ignoring transparent pixel')
+                continue
             try:
                 pixels[x, y] = pal[pixels[x, y][0]//step]
             except IndexError:
                 if not pixels[x, y] in wrong_colors:
                     wrong_colors.append(pixels[x, y])
-                    print('WARN: Wrong color/palette ', pixels[x, y])
+                    if VERBOSE: print('WARN: Wrong color/palette ', pixels[x, y])
     return img
 
 def generate_palette(img, transparent=False):
@@ -101,7 +106,7 @@ def generate_palette(img, transparent=False):
             if not pixels[x, y] in pal:
                 if transparent or pixels[x, y][3] == 255:
                     pal.append(pixels[x, y])
-    print('%s colors' % len(pal))
+    if VERBOSE: print('%s colors' % len(pal))
     pal_img = Image.new('RGBA', (len(pal), 1))
     pixels = pal_img.load()
     for x in range(pal_img.size[0]):
@@ -119,18 +124,18 @@ def parse_output(input_, output_=None, term='0'):
 
 def main(args):
     if args.apply:
-        print('Applying palette...')
+        if VERBOSE: print('Applying palette...')
         mask = load_image(args.input)
         pal = load_palette(args.palette)
-        img = apply_palette(mask, pal, abs(args.step))
+        img = apply_palette(mask, pal, abs(args.step), args.transparent)
         img.save(parse_output(args.input, args.output, 'new'))
-    elif args.generate:
-        print('Generating palette...')
+    elif args.generate_pal:
+        if VERBOSE: print('Generating palette...')
         img = load_image(args.input)
         pal = generate_palette(img, args.transparent)
         pal.save(parse_output(args.palette+'.png', args.output, 'pal'))
     else:
-        print('Generating mask...')
+        if VERBOSE: print('Generating mask...')
         img = load_image(args.input)
         pal = load_palette(args.palette)
         mask = generate_mask(
@@ -138,20 +143,23 @@ def main(args):
             args.normalized, args.random
         )
         mask.save(parse_output(args.input, args.output, 'mask'))
-    print('Done')
+    if VERBOSE: print('Done')
 
 
 if __name__ == '__main__':
-    arg_parse = ArgumentParser('redmask')
-    arg_parse.add_argument('input', type=str, metavar='<source.png>', help='input image')
-    arg_parse.add_argument('palette', type=str, metavar='<pal.png|gpl>', help='palette image')
-    arg_parse.add_argument('-o', '--output', type=str, metavar='<output.png>', help='output image')
-    arg_parse.add_argument('-s', '--step', type=int, metavar='<color-step=1>', default=1, help='mask color step')
-    arg_parse.add_argument('-r', '--random', type=str, metavar='<random=g|b|gb>', default='', help='use random values for green and/or blue')
-    arg_parse.add_argument('-n', '--normalized', action='store_true', default=False, help='set same value for red, green and blue')
-    arg_parse.add_argument('-a', '--apply', action='store_true', default=False, help='apply palette to a mask')
-    arg_parse.add_argument('-g', '--generate', action='store_true', default=False, help='generate palette input')
-    arg_parse.add_argument('-t', '--transparent', action='store_true', default=False, help='take transparent colors into account')
-    args = arg_parse.parse_args()
+    parser = ArgumentParser('redmask')
+    apply_or_gen = parser.add_mutually_exclusive_group()
+    parser.add_argument('input', type=str, metavar='<source.png>', help='input image')
+    parser.add_argument('palette', type=str, metavar='<pal.png|gpl>', help='palette image')
+    parser.add_argument('-o', '--output', type=str, metavar='<output.png>', help='output image')
+    parser.add_argument('-s', '--step', type=int, metavar='<color-step=1>', default=1, help='mask color step')
+    parser.add_argument('-r', '--random', type=str, metavar='<random=g|b|gb>', default='', help='use random values for green and/or blue')
+    parser.add_argument('-n', '--normalized', action='store_true', help='set same value for red, green and blue')
+    parser.add_argument('-t', '--transparent', action='store_true', help='take transparent colors into account')
+    apply_or_gen.add_argument('-a', '--apply', action='store_true', help='apply palette to a mask')
+    apply_or_gen.add_argument('-g', '--generate-pal', action='store_true', help='generate palette input')
+    parser.add_argument('-v', '--verbose', action='store_true', help='enable verbose output')
+    args = parser.parse_args()
 
+    VERBOSE = args.verbose
     main(args)
