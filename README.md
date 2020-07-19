@@ -30,11 +30,15 @@ if (COLOR.a != 0){
 // '0.001' part is a workaround to fix float precision issues.
 ```
 
+## Install
+
+```sh
+pip install redmask
+```
+
 ## Basic usage
 
-```bash
-# redmask = python redmask.py
-
+```sh
 redmask <input> <palette>
 # generate a mask using default color step (1)
 
