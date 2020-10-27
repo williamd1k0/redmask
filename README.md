@@ -16,18 +16,23 @@ Full explanation about palette mask: [https://www.youtube.com/watch?v=u4Iz5AJa31
 
 The mask can be used in a palette swap shader.
 
-Example shader in Godot Engine 2.1.x:
+Example shader in Godot Engine 3.x.x:
 
 ```glsl
-// fragment
-uniform texture palette;
-uniform float colors;
-uniform float color_step;
+shader_type canvas_item;
 
-if (COLOR.a != 0){
-    COLOR = tex(palette, vec2((COLOR.r*255.0)/(colors-0.001) / color_step, 0));
+uniform sampler2D palette;
+uniform int palette_colors = 1;
+uniform float color_step = 1.0;
+
+void fragment() {
+	vec4 new_color = texture(TEXTURE, UV);
+	if (new_color.a > 0.0){
+		vec2 palette_uv = vec2((new_color.r * 255.0) / float(palette_colors) / color_step, 0.0);
+		new_color = texture(palette, palette_uv);
+  }
+  COLOR = new_color;
 }
-// '0.001' part is a workaround to fix float precision issues.
 ```
 
 ## Install
