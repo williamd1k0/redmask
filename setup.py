@@ -13,7 +13,7 @@ options = dict(
     download_url="https://github.com/williamd1k0/redmask/archive/v%s.tar.gz" % VERSION,
     packages=["redmask"],
     entry_points={'console_scripts': ['redmask = redmask:dist_main']},
-    install_requires=['pillow >= 5.0.0'],
+    install_requires=['pillow >= 10.2.0'],
     classifiers=[
         "Topic :: Utilities",
         "Topic :: Multimedia :: Graphics",

@@ -97,6 +97,16 @@ def apply_palette(mask, pal, step, transparent=False):
                     if VERBOSE: print('WARN: Wrong color/palette ', pixels[x, y])
     return img
 
+def colors2himg(colors):
+    pal_img = Image.new('RGBA', (len(colors), 1))
+    pixels = pal_img.load()
+    for x in range(pal_img.size[0]):
+        pixels[x, 0] = colors[x]
+    return pal_img
+
+def colors2hexcsv(colors):
+    return ",".join(['{:02x}{:02x}{:02x}'.format(*c) for c in colors])
+
 def generate_palette(img, transparent=False):
     pal = []
     pixels = img.load()
@@ -106,11 +116,7 @@ def generate_palette(img, transparent=False):
                 if transparent or pixels[x, y][3] == 255:
                     pal.append(pixels[x, y])
     if VERBOSE: print('%s colors' % len(pal))
-    pal_img = Image.new('RGBA', (len(pal), 1))
-    pixels = pal_img.load()
-    for x in range(pal_img.size[0]):
-        pixels[x, 0] = pal[x]
-    return pal_img
+    return pal
 
 def parse_output(input_, output_=None, term='0'):
     if output_ is None:
@@ -132,7 +138,13 @@ def main(args):
         if VERBOSE: print('Generating palette...')
         img = load_image(args.input)
         pal = generate_palette(img, args.transparent)
-        pal.save(parse_output(args.palette+'.png', args.output, 'pal'))
+        if args.palette.endswith(".png"):
+            colors2himg(pal).save(args.palette)
+        elif args.palette.endswith(".csv"):
+            with open(args.palette, 'w', encoding="utf-8") as f:
+                f.write(colors2hexcsv(pal))
+        # TODO: Add support for GPL and JASC-PAL
+        # TODO: Improve output param structure
     else:
         if VERBOSE: print('Generating mask...')
         img = load_image(args.input)
